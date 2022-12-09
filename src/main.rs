@@ -718,3 +718,74 @@ impl Forest {
         up*down*left*right
     }
 }
+
+/// Day 9 Part 1
+fn nine1() -> usize {
+    
+}
+
+struct Vec2 {
+    x: usize,
+    y: usize
+}
+
+impl Vec2 {
+    fn new(x: usize, y: usize) -> Self {
+        Self{x, y}
+    }
+
+    fn up(&mut self) {
+        self.y += 1;
+    }
+
+    fn down(&mut self) {
+        self.y -= 1;
+    }
+
+    fn left(&mut self) {
+        self.x -= 1;
+    }
+
+    fn right(&mut self) {
+        self.x += 1;
+    }
+
+    fn adjacent(&self, other: &Vec2) -> bool {
+        (self.x-1..=self.x+1).contains(&other.x) && (self.y-1..=self.y+1).contains(&other.y)
+    }
+
+    fn direction(&self, other: &Vec2) -> Direction {
+        match *self-*other {
+            v if v.x == 0 && v.y == 0 => Direction::Center,
+            v if v.x == 0 && v.y > 0 => Direction::Up,
+            v if v.x == 0 && v.y < 0 => Direction::Down,
+            v if v.y == 0 && v.x > 0 => Direction::Right,
+            v if v.y == 0 && v.x < 0 => Direction::Left,
+            v if v.y > 0 && v.x > 0 => Direction::UpperRight,
+            v if v.y > 0 && v.x < 0 => Direction::UpperLeft,
+            v if v.y < 0 && v.x > 0 => Direction::LowerRight,
+            v if v.y < 0 && v.x < 0 => Direction::LowerLeft,
+            _ => Direction::Center
+        }
+    }
+}
+
+impl std::ops::Sub for Vec2 {
+    type Output = Vec2;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        Self::Output{x: self.x-rhs.x, y: self.y-rhs.y}
+    }
+}
+
+enum Direction {
+    Center,
+    Up,
+    Down,
+    Right,
+    Left,
+    UpperRight,
+    UpperLeft,
+    LowerRight,
+    LowerLeft
+}
