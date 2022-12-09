@@ -31,6 +31,12 @@ fn main() {
 
     println!("Day 7 Part 1: {}", seven1());
     println!("Day 7 Part 2: {}", seven2());
+
+    println!();
+
+    println!("Day 8 Part 1: {}", eight1());
+    println!("Day 8 Part 2: {}", eight2());
+
 }
 
 fn input_to_string(day: u8) -> String {
@@ -562,5 +568,153 @@ struct File {
 impl File {
     fn new(size: usize) -> Self {
         Self{size}
+    }
+}
+
+/// Day 8 Part 1
+fn eight1() -> usize {
+    let input = input_to_string(8);
+    let grid = Grid::parse(input);
+
+    let mut total = 0;
+
+    for x in 0..grid.width {
+        for y in 0..grid.height {
+            if grid.visible(x, y) {
+                total += 1;
+            }
+        }
+    }
+
+    total
+}
+
+/// Day 8 Part 2
+fn eight2() -> usize {
+    let input = input_to_string(8);
+    let grid = Grid::parse(input);
+    let mut max = 0;
+    
+    for x in 0..grid.width {
+        for y in 0..grid.height {
+            max = max.max(grid.viewing_distance(x, y));
+        }
+    }
+
+    max
+}
+
+struct Grid {
+    inner: Vec<Vec<usize>>,
+    width: usize,
+    height: usize
+}
+
+impl Grid {
+    fn new(inner: Vec<Vec<usize>>) -> Self {
+        let height = inner.len();
+        let width = inner[0].len();
+        Self{
+            inner,
+            height,
+            width
+        }
+    }
+
+    fn parse(grid: String) -> Self {
+        let mut full: Vec<Vec<usize>> = Vec::new();
+
+        for line in grid.lines() {
+            let mut temp: Vec<usize> = Vec::new();
+
+            for c in line.chars() {
+                temp.push(c.to_digit(10).unwrap() as usize);
+            }
+
+            full.push(temp);
+        }
+
+        Self::new(full)
+    }
+
+    fn at(&self, x: usize, y: usize) -> usize {
+        self.inner[y][x]
+    }
+
+    fn visible(&self, x: usize, y: usize) -> bool {
+        let height = self.at(x, y);
+
+        let mut up = true;
+        let mut down = true;
+        let mut left = true;
+        let mut right = true;
+
+        for row in 0..y {
+            if self.at(x, row) >= height {
+                up = false;
+                break;
+            }
+        }
+        for row in y+1..self.height {
+            if self.at(x, row) >= height {
+                down = false;
+                break;
+            }
+        }
+
+        for column in 0..x {
+            if self.at(column, y) >= height {
+                left = false;
+                break;
+            }
+        }
+        for column in x+1..self.width {
+            if self.at(column, y) >= height {
+                right = false;
+                break;
+            }
+        }
+
+        up || down || left || right
+    }
+
+    fn viewing_distance(&self, x: usize, y: usize) -> usize {
+        if x == 0 || y == 0 || x == self.width-1 || y == self.height-1 {
+            return 0
+        }
+        
+        let height = self.at(x, y);
+
+        let mut up = 0;
+        let mut down = 0;
+        let mut left = 0;
+        let mut right = 0;
+
+        for row in (0..y).rev() {
+            up += 1;
+            if self.at(x, row) >= height {
+                break
+            }
+        }
+        for row in y+1..self.height {
+            down += 1;
+            if self.at(x, row) >= height {
+                break;
+            }
+        }
+        for column in (0..x).rev() {
+            left += 1;
+            if self.at(column, y) >= height {
+                break;
+            }
+        }
+        for column in x+1..self.width {
+            right += 1;
+            if self.at(column, y) >= height {
+                break;
+            }
+        }
+        
+        up*down*left*right
     }
 }
