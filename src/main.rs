@@ -574,7 +574,7 @@ impl File {
 /// Day 8 Part 1
 fn eight1() -> usize {
     let input = input_to_string(8);
-    let grid = Grid::parse(input);
+    let grid = Forest::parse(input);
 
     let mut total = 0;
 
@@ -592,7 +592,7 @@ fn eight1() -> usize {
 /// Day 8 Part 2
 fn eight2() -> usize {
     let input = input_to_string(8);
-    let grid = Grid::parse(input);
+    let grid = Forest::parse(input);
     let mut max = 0;
     
     for x in 0..grid.width {
@@ -604,13 +604,13 @@ fn eight2() -> usize {
     max
 }
 
-struct Grid {
+struct Forest {
     inner: Vec<Vec<usize>>,
     width: usize,
     height: usize
 }
 
-impl Grid {
+impl Forest {
     fn new(inner: Vec<Vec<usize>>) -> Self {
         let height = inner.len();
         let width = inner[0].len();
