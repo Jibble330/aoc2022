@@ -37,6 +37,10 @@ fn main() {
     println!("Day 8 Part 1: {}", eight1());
     println!("Day 8 Part 2: {}", eight2());
 
+    println!();
+
+    println!("Day 9 Part 1: {}", nine1());
+    println!("Day 9 Part 2: {}", nine2());
 }
 
 fn input_to_string(day: u8) -> String {
@@ -721,33 +725,83 @@ impl Forest {
 
 /// Day 9 Part 1
 fn nine1() -> usize {
-    
+    let input = input_to_string(9);
+    let mut visited: Vec<Vec2> = vec![Vec2::new(0, 0)];
+
+    let mut head = Vec2::new(0, 0);
+    let mut tail = Vec2::new(0, 0);
+
+    for line in input.lines() {
+        let (dir, amount_str) = line.split_once(" ").unwrap();
+        let amount: usize = amount_str.parse().unwrap();
+        let direction = Direction::parse(dir);
+
+        for _ in 0..amount {
+            head.shift(&direction);
+            if !tail.adjacent(&head) {
+                tail.shift(&tail.direction(&head));
+            }
+            if !visited.contains(&tail) {
+                visited.push(tail);
+            }
+        }
+
+    }
+
+    visited.len()
 }
 
+/// Day 9 Part 2
+fn nine2() -> usize {
+    let input = input_to_string(9);
+    let mut visited: Vec<Vec2> = vec![Vec2::new(0, 0)];
+
+    let mut head = Vec2::new(0, 0);
+    let mut body = [Vec2::new(0, 0); 9];
+
+    for line in input.lines() {
+        let (dir, amount_str) = line.split_once(" ").unwrap();
+        let amount: usize = amount_str.parse().unwrap();
+        let direction = Direction::parse(dir);
+
+        for _ in 0..amount {
+            head.shift(&direction);
+            if !tail.adjacent(&head) {
+                tail.shift(&tail.direction(&head));
+            }
+            if !visited.contains(&tail) {
+                visited.push(tail);
+            }
+        }
+
+    }
+
+    visited.len()
+}
+
+#[derive(PartialEq, Clone, Copy)]
 struct Vec2 {
-    x: usize,
-    y: usize
+    x: isize,
+    y: isize
 }
 
 impl Vec2 {
-    fn new(x: usize, y: usize) -> Self {
+    fn new(x: isize, y: isize) -> Self {
         Self{x, y}
     }
 
-    fn up(&mut self) {
-        self.y += 1;
-    }
-
-    fn down(&mut self) {
-        self.y -= 1;
-    }
-
-    fn left(&mut self) {
-        self.x -= 1;
-    }
-
-    fn right(&mut self) {
-        self.x += 1;
+    fn shift(&mut self, direction: &Direction) {
+        match direction {
+            Direction::Center => (),
+            Direction::Up => self.y += 1,
+            Direction::Down => self.y -= 1,
+            Direction::Right => self.x += 1,
+            Direction::Left => self.x -= 1,
+            Direction::UpperRight => {self.x += 1; self.y +=1},
+            Direction::UpperLeft => {self.x -= 1; self.y += 1},
+            Direction::LowerRight => {self.x += 1; self.y -= 1},
+            Direction::LowerLeft => {self.x -= 1; self.y -= 1}
+        }
     }
 
     fn adjacent(&self, other: &Vec2) -> bool {
@@ -755,7 +809,7 @@ impl Vec2 {
     }
 
     fn direction(&self, other: &Vec2) -> Direction {
-        match *self-*other {
+        match *other-*self {
             v if v.x == 0 && v.y == 0 => Direction::Center,
             v if v.x == 0 && v.y > 0 => Direction::Up,
             v if v.x == 0 && v.y < 0 => Direction::Down,
@@ -788,4 +842,16 @@ enum Direction {
     UpperLeft,
     LowerRight,
     LowerLeft
+}
+
+impl Direction {
+    fn parse(from: &str) -> Self {
+        match from {
+            "U" => Self::Up,
+            "D" => Self::Down,
+            "R" => Self::Right,
+            "L" => Self::Left,
+            _ => Self::Center
+        }
+    }
 }
