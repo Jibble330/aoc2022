@@ -51,6 +51,10 @@ fn main() {
 
     println!("Day 11 Part 1: {}", eleven1());
     println!("Day 11 Part 2: {}", eleven2());
+
+    println!();
+
+    println!("Day 12 Part 1: {}", twelve1());
 }
 
 fn input_to_string(day: u8) -> String {
@@ -1073,4 +1077,28 @@ impl Monkey {
 
         Monkey{items, inspect, divisor, if_true, if_false, inspected: 0}
     }
+}
+
+
+
+/// Day 12 Part 1
+fn twelve1() -> usize {
+    let input = input_to_string(12);
+    let mut mountain: Vec<Vec<usize>> = Vec::new();
+
+    for line in input.lines() {
+        let mut current: Vec<usize> = Vec::new();
+        for c in line.chars() {
+            current.push(height(c));
+        }
+        mountain.push(current);
+    }
+
+    
+
+    0
+}
+
+fn height(str: char) -> usize {
+    "abcdefghijklmnopqrstuvwxyz".find(str).unwrap()
 }
