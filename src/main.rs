@@ -41,11 +41,23 @@ fn main() {
 
     println!("Day 9 Part 1: {}", nine1());
     println!("Day 9 Part 2: {}", nine2());
+
+    println!();
+
+    println!("Day 10 Part 1: {}", ten1());
+    println!("Day 10 Part 2:\n{}", ten2());
+
+    println!();
+
+    println!("Day 11 Part 1: {}", eleven1());
+    println!("Day 11 Part 2: {}", eleven2());
 }
 
 fn input_to_string(day: u8) -> String {
     std::fs::read_to_string(format!("input/in{}.txt", day)).expect("Unable to read input file")
 }
+
+
 
 /// Day 1 Part 1
 fn one1() -> usize {
@@ -91,6 +103,8 @@ fn one2() -> usize {
 
     first+second+third
 }
+
+
 
 /// Day 2 Part 1
 fn two1() -> usize {
@@ -207,6 +221,8 @@ impl Round {
     }
 }
 
+
+
 /// Day 3 Part 1
 fn three1() -> usize {
     let input = input_to_string(3);
@@ -250,6 +266,8 @@ fn three2() -> usize {
 fn priority(c: char) -> usize {
     "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".find(c).unwrap() + 1
 }
+
+
 
 /// Day 4 Part 1
 fn four1() -> usize {
@@ -296,6 +314,8 @@ fn overlaps(r1: (usize, usize), r2: (usize, usize)) -> bool {
     let range2 = r2.0..=r2.1;
     range1.contains(&r2.0) || range1.contains(&r2.1) || range2.contains(&r1.0) || range2.contains(&r1.1)
 }
+
+
 
 /// Day 5 Part 1
 fn five1() -> String {
@@ -374,6 +394,8 @@ fn tops(stacks: &Vec<Vec<&str>>) -> String {
     all
 }
 
+
+
 /// Day 6 Part 1
 fn six1() -> usize {
     let input_chars: Vec<char> = input_to_string(6).chars().collect();
@@ -420,6 +442,8 @@ fn is_unique(chars: &Vec<char>) -> bool {
 
     true
 }
+
+
 
 /// Day 7 Part 1
 fn seven1() -> usize {
@@ -575,6 +599,8 @@ impl File {
     }
 }
 
+
+
 /// Day 8 Part 1
 fn eight1() -> usize {
     let input = input_to_string(8);
@@ -723,6 +749,8 @@ impl Forest {
     }
 }
 
+
+
 /// Day 9 Part 1
 fn nine1() -> usize {
     let input = input_to_string(9);
@@ -753,11 +781,13 @@ fn nine1() -> usize {
 
 /// Day 9 Part 2
 fn nine2() -> usize {
+    const BODY_LENGTH: usize = 9;
+
     let input = input_to_string(9);
     let mut visited: Vec<Vec2> = vec![Vec2::new(0, 0)];
 
     let mut head = Vec2::new(0, 0);
-    let mut body = [Vec2::new(0, 0); 9];
+    let mut body = [Vec2::new(0, 0); BODY_LENGTH];
 
     for line in input.lines() {
         let (dir, amount_str) = line.split_once(" ").unwrap();
@@ -766,11 +796,17 @@ fn nine2() -> usize {
 
         for _ in 0..amount {
             head.shift(&direction);
-            if !tail.adjacent(&head) {
-                tail.shift(&tail.direction(&head));
+            for i in 0..body.len() {
+                let mut previous = &head;
+                if i > 0 {
+                    previous = &body[i-1];
+                }
+                if !body[i].adjacent(previous) {
+                    body[i].shift(&body[i].direction(&previous));
+                }
             }
-            if !visited.contains(&tail) {
-                visited.push(tail);
+            if !visited.contains(&body.last().unwrap()) {
+                visited.push(*body.last().unwrap());
             }
         }
 
@@ -853,5 +889,188 @@ impl Direction {
             "L" => Self::Left,
             _ => Self::Center
         }
+    }
+}
+
+
+
+/// Day 10 Part 1
+fn ten1() -> isize {
+    let input = input_to_string(10);
+
+    let mut cycle = 1;
+    let mut register = 1;
+    let mut sum = 0;
+
+    for line in input.lines() {
+        if (cycle-20)%40 == 0 {
+            sum += cycle*register;
+        }
+
+        if line.trim() == "noop" {
+            cycle += 1;
+        } else {
+            cycle += 1;
+            if (cycle-20)%40 == 0 {
+                sum += cycle*register;
+            }
+
+            cycle += 1;
+            register += line.replace("addx", "").trim().parse::<isize>().unwrap();
+        }
+    }
+
+    sum
+}
+
+const CRTX: usize = 40;
+const CRTY: usize = 6;
+const MAX_CYCLE: usize = CRTX*CRTY;
+
+macro_rules! capped_inc {
+    ($cycle:ident, $max:ident) => {
+        $cycle += 1;
+        if $cycle >= $max {
+            break;
+        }
+    };
+}
+
+/// Day Ten Part 2
+fn ten2() -> String {
+    let input = input_to_string(10);
+
+    let mut crt = [[false; CRTY]; CRTX];
+    let mut cycle = 0;
+    let mut register = 1;
+
+    for line in input.lines() {
+        if line.trim() == "noop" {
+            draw(&mut crt, cycle, register);
+            capped_inc!(cycle, MAX_CYCLE);
+            
+        } else {
+            draw(&mut crt, cycle, register);
+            capped_inc!(cycle, MAX_CYCLE);
+            
+            draw(&mut crt, cycle, register);
+            capped_inc!(cycle, MAX_CYCLE);
+            register += line.replace("addx", "").trim().parse::<isize>().unwrap();
+        }
+    }
+
+    view(crt)
+}
+
+fn draw(screen: &mut [[bool; CRTY]; CRTX], pixel: usize, sprite: isize) {
+    let x = pixel%CRTX;
+    let y = pixel/CRTX;
+    if (sprite-1..=sprite+1).contains(&(x as isize)) {
+        screen[x][y] = true;
+    } else {
+        screen [x][y] = false;
+    }
+}
+
+/// Converts CRT array to String
+fn view(screen: [[bool; CRTY]; CRTX]) -> String {
+    let mut drawn = String::new();
+    
+    for y in 0..CRTY {
+        for x in 0..CRTX {
+            drawn += if screen[x][y] {"█"} else {"."};
+        }
+        drawn += "\n";
+    }
+
+    drawn
+}
+
+
+
+/// Day 11 Part 1
+fn eleven1() -> usize {
+    let input = input_to_string(11);
+    const ROUNDS: usize = 20;
+
+    let mut monkeys: Vec<Monkey> = input.split("\r\n\r\n").map(|x| Monkey::parse(x)).collect();
+
+    for _ in 0..ROUNDS {
+        for i in 0..monkeys.len() {
+            for _ in 0..monkeys[i].items.len() {
+                monkeys[i].inspected += 1;
+                let mut new = monkeys[i].items.remove(0);
+                new = (monkeys[i].inspect)(new)/3;
+                let next = if new%monkeys[i].divisor == 0 {monkeys[i].if_true} else {monkeys[i].if_false};
+                monkeys[next].items.push(new);
+                
+            }
+        }
+    }
+
+    let mut inspected: Vec<usize> = monkeys.iter().map(|monkey| monkey.inspected).collect();
+    inspected.sort_by(|i1, i2| i1.cmp(i2));
+    let top_two = inspected.iter().rev().take(2);
+
+    top_two.product()
+}
+
+fn eleven2() -> usize {
+    let input = input_to_string(11);
+    const ROUNDS: usize = 10000;
+
+    let mut monkeys: Vec<Monkey> = input.split("\r\n\r\n").map(|x| Monkey::parse(x)).collect();
+    let denom: usize = monkeys.iter().map(|m| m.divisor).product();
+
+    for _ in 0..ROUNDS {
+        for i in 0..monkeys.len() {
+            for _ in 0..monkeys[i].items.len() {
+                monkeys[i].inspected += 1;
+                let mut new = monkeys[i].items.remove(0);
+                new = (monkeys[i].inspect)(new)%denom;
+                let next = if new%monkeys[i].divisor == 0 {monkeys[i].if_true} else {monkeys[i].if_false};
+                monkeys[next].items.push(new);
+                
+            }
+        }
+    }
+
+    let mut inspected: Vec<usize> = monkeys.iter().map(|monkey| monkey.inspected).collect();
+    inspected.sort_by(|i1, i2| i1.cmp(i2));
+    let top_two = inspected.iter().rev().take(2);
+
+    top_two.product()
+}
+
+struct Monkey {
+    items: Vec<usize>,
+    inspect: Box<dyn Fn(usize) -> usize>,
+    divisor: usize,
+    if_true: usize,
+    if_false: usize,
+    inspected: usize,
+}
+
+impl Monkey {
+    fn parse(str: &str) -> Monkey {
+        let lines: Vec<&str> = str.lines().collect();
+        let items: Vec<usize> = lines[1].replace("Starting items:", "").trim().split(", ").map(|x| x.parse::<usize>().unwrap()).collect();
+
+        let op = if lines[2].contains("+") {"+"} else if lines[2].contains("* old") {"**"} else {"*"};
+        let value: usize = lines[2].split_at(25).1.parse().unwrap_or(0);
+        let inspect = Box::new(move |old| {
+            match op {
+                "*" => old * value,
+                "+" => old + value,
+                "**" => old * old,
+                _ => panic!("invalid operation")
+            }
+        });
+
+        let divisor = lines[3].replace("Test: divisible by", "").trim().parse().unwrap();
+        let if_true = lines[4].replace("If true: throw to monkey", "").trim().parse().unwrap();
+        let if_false = lines[5].replace("If false: throw to monkey", "").trim().parse().unwrap();
+
+        Monkey{items, inspect, divisor, if_true, if_false, inspected: 0}
     }
 }
